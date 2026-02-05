@@ -1,0 +1,45 @@
+`timescale 1ns/1ps
+
+module tb_counter;
+
+    // Testbench signals
+    reg clock;
+    reg clear;
+    wire [3:0] count;
+
+    // Instantiate the DUT (Device Under Test)
+	  counter uut (
+        .clock(clock),
+        .clear(clear),
+        .count(count)
+    );
+
+    // Clock Generation: 10ns period
+    initial begin
+        clock = 0;
+        forever #5 clock = ~clock;  
+    end
+	  // Apply Stimuli
+    initial begin
+        // Initialize
+        clear = 1;  
+        #10 clear = 0;    // Release clear after 10ns
+
+        // Run for some time
+        #100;
+
+        // Apply clear again
+        clear = 1;
+        #10 clear = 0;
+
+        // Run more
+        #50;
+		        $finish;  // End simulation
+    end
+
+    // Monitor values
+    initial begin
+        $monitor("Time=%0t | clear=%b | count=%d", $time, clear, count);
+    end
+
+endmodule
