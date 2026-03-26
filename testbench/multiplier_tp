@@ -1,0 +1,60 @@
+`timescale 1ns/1ps
+module tb_mul;
+
+    reg clk;
+    reg reset;
+    reg start;
+    reg [15:0] data_A;
+    reg [15:0] data_B;
+
+    wire [31:0] product;
+    wire done;
+
+    // Instantiate TOP module
+    top_lvl_mul DUT (
+        .clk(clk),
+        .reset(reset),
+        .start(start),
+        .data_A(data_A),
+        .data_B(data_B),
+        .product(product),
+        .done(done)
+    );
+	     // Clock generation (10 ns period)
+    always #5 clk = ~clk;
+
+    initial begin
+        // GTKWave dump
+        $dumpfile("mul_structural.vcd");
+        $dumpvars(0, tb_mul);
+
+        // Initialize
+        clk = 0;
+        reset = 1;
+        start = 0;
+        data_A = 0;
+        data_B = 0;
+
+        // Apply reset
+        #10 reset = 0;
+		         data_A = 16'd6;   // Multiplicand
+        data_B = 16'd4;   // Multiplier
+
+        #10 start = 1;
+        #10 start = 0;
+
+        // Wait until multiplication completes
+        wait(done);
+
+        $display("TIME=%0t | A=%d B=%d PRODUCT=%d",
+                  $time, data_A, data_B, product);
+      #20 $finish;
+    end
+
+    // Monitor (optional, good for console debugging)
+    initial begin
+        $monitor("T=%0t | start=%b done=%b A=%d B=%d P=%d",
+                  $time, start, done, data_A, data_B, product);
+    end
+
+endmodule
