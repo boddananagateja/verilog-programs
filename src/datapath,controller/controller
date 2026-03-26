@@ -1,0 +1,33 @@
+module controller (
+    output reg ldA, ldB, ldP, clrP, decB, done,
+    input clk, reset, start, eqz
+);
+
+    reg [2:0] state;
+    parameter s0=0, s1=1, s2=2, s3=3, s4=4;
+
+    always @(posedge clk) begin
+        if (reset)
+            state <= s0;
+        else begin
+            case (state)
+                s0: if (start) state <= s1;
+                s1: state <= s2;
+                s2: state <= s3;
+                s3: if (eqz) state <= s4;
+					 s4: if (!start) state <= s0;
+            endcase
+        end
+    end
+
+    always @(*) begin
+        {ldA, ldB, ldP, clrP, decB, done} = 6'b0;
+        case (state)
+            s1: begin ldA=1; ldB=1; end
+            s2: clrP = 1;
+            s3: begin ldP=1; decB=1; end
+            s4: done = 1;
+        endcase
+    end
+
+endmodule
