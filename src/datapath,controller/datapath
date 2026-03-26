@@ -1,0 +1,115 @@
+module datapath (
+    output eqz,
+    output [31:0] product,
+    input  ldA, ldB, ldP, clrP, decB,
+    input  clk, reset,
+    input  [15:0] data_A,
+    input  [15:0] data_B
+);
+
+    wire [15:0] A_out, B_out;
+    wire [31:0] P_out, add_out;
+
+    // A register
+    PIPO A (
+        .dout(A_out),
+        .din(data_A),
+        .ld(ldA),
+        .clk(clk),
+        .reset(reset)
+    );
+   // B counter
+    CNTR B (
+        .dout(B_out),
+        .din(data_B),
+        .ld(ldB),
+        .dec(decB),
+        .clk(clk),
+        .reset(reset)
+    );
+
+    // Adder
+    ADD ADD1 (
+        .sum(add_out),
+        .a(P_out),
+        .b({16'd0, A_out})
+    );
+
+    // Product register
+    PIPO_P P (
+        .dout(P_out),
+        .din(add_out),
+        .ld(ldP),
+        .clr(clrP),
+        .clk(clk),
+        .reset(reset)
+    );
+
+    // Zero comparator
+    EQZ Z (
+        .eqz(eqz),
+        .data(B_out)
+    );
+
+    assign product = P_out;
+
+endmodule
+
+
+module PIPO (
+    output reg [15:0] dout,
+    input  [15:0] din,
+    input  ld, clk, reset
+);
+    always @(posedge clk) begin
+        if (reset)
+            dout <= 16'd0;
+        else if (ld)
+            dout <= din;
+    end
+endmodule
+
+module PIPO_P (
+    output reg [31:0] dout,
+    input  [31:0] din,
+    input  ld, clr, clk, reset
+);
+    always @(posedge clk) begin
+        if (reset || clr)
+            dout <= 32'd0;
+        else if (ld)
+            dout <= din;
+    end
+endmodule
+
+module CNTR (
+    output reg [15:0] dout,
+    input  [15:0] din,
+    input  ld, dec, clk, reset
+);
+    always @(posedge clk) begin
+        if (reset)
+            dout <= 16'd0;
+        else if (ld)
+            dout <= din;
+        else if (dec)
+            dout <= dout - 1;
+    end
+endmodule
+
+
+module ADD (
+    output [31:0] sum,
+    input  [31:0] a,
+    input  [31:0] b
+);
+    assign sum = a + b;
+endmodule
+
+
+module EQZ (
+    output eqz,
+    input  [15:0] data
+);
+    assign eqz = (data == 16'd0);
+endmodule
