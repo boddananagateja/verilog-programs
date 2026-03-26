@@ -1,0 +1,38 @@
+module top_lvl_mul (
+    input clk, reset, start,
+    input [15:0] data_A,
+    input [15:0] data_B,
+    output [31:0] product,
+    output done
+);
+
+    wire ldA, ldB, ldP, clrP, decB, eqz;
+
+    datapath DP (
+        .eqz(eqz),
+        .product(product),
+        .ldA(ldA),
+        .ldB(ldB),
+        .ldP(ldP),
+        .clrP(clrP),
+        .decB(decB),
+        .clk(clk),
+        .reset(reset),
+        .data_A(data_A),
+        .data_B(data_B)
+    );
+	 
+    controller CU (
+        .ldA(ldA),
+        .ldB(ldB),
+        .ldP(ldP),
+        .clrP(clrP),
+        .decB(decB),
+        .done(done),
+        .clk(clk),
+        .reset(reset),
+        .start(start),
+        .eqz(eqz)
+    );
+
+endmodule
